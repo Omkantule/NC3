@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login - FarmFresh Marketplace</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="login-body">
+    <section class="login-page">
+      <div class="login-card">
+        <h1>FarmFresh Login</h1>
+        <p>Select your category to open the correct dashboard interface.</p>
+
+        <form id="loginForm" class="login-form">
+          <div class="role-cards">
+            <label class="role-option-card">
+              <input type="radio" name="role" value="farmer" required />
+              <div>
+                <h3>Farmer</h3>
+                <p>
+                  Upload products and access both customer and wholesaler
+                  interfaces.
+                </p>
+              </div>
+            </label>
+
+            <label class="role-option-card">
+              <input type="radio" name="role" value="wholesaler" />
+              <div>
+                <h3>Wholesaler</h3>
+                <p>View farmer products and place bulk orders.</p>
+              </div>
+            </label>
+
+            <label class="role-option-card">
+              <input type="radio" name="role" value="customer" />
+              <div>
+                <h3>Customer</h3>
+                <p>Shop farmer products with regular cart flow.</p>
+              </div>
+            </label>
+          </div>
+
+          <button type="submit" class="btn-primary login-submit">
+            Continue
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <script src="script.js"></script>
+  </body>
+</html>

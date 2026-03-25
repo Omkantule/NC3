@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FarmFresh Marketplace - Fresh from Farm to Your Home</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <!-- Header Section -->
+    <header class="header">
+      <div class="container">
+        <div class="logo">
+          <h1>🌾 FarmFresh</h1>
+        </div>
+        <nav class="nav">
+          <input
+            type="text"
+            class="search-bar"
+            placeholder="Search for vegetables, fruits, grains..."
+          />
+          <button class="search-btn">🔍</button>
+        </nav>
+        <div class="header-actions">
+          <span class="role-chip" id="activeRoleChip">Role: Customer</span>
+          <button class="location-btn" id="locationBtn">📍 Set Location</button>
+          <button class="cart-btn" onclick="window.location.href = 'cart.html'">
+            🛒 Cart <span class="cart-count" id="cartCount">0</span>
+          </button>
+          <button class="logout-btn" onclick="logoutUser()">Logout</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Location Modal -->
+    <div class="modal" id="locationModal">
+      <div class="modal-content">
+        <span class="close-btn" id="closeModal">&times;</span>
+        <h2>Enter Your Location</h2>
+        <input
+          type="text"
+          id="locationInput"
+          placeholder="Enter your address or pincode"
+        />
+        <button class="btn-primary" id="saveLocation">Save Location</button>
+        <p class="current-location" id="currentLocation"></p>
+      </div>
+    </div>
+
+    <!-- Filter Section -->
+    <section class="filters">
+      <div class="container">
+        <div class="role-access-panel">
+          <div>
+            <h3>Portal Access</h3>
+            <p id="roleDescription">
+              Customer can buy products listed by farmers.
+            </p>
+          </div>
+          <div class="role-selector-wrap">
+            <label for="roleSelector">Switch role:</label>
+            <select id="roleSelector">
+              <option value="farmer">Farmer (Access to all interfaces)</option>
+              <option value="customer" selected>
+                Customer (Farmer products only)
+              </option>
+              <option value="wholesaler">
+                Wholesaler (Farmer products only)
+              </option>
+            </select>
+          </div>
+          <div
+            class="role-preview-actions"
+            id="farmerPreviewActions"
+            style="display: none"
+          >
+            <button class="btn-secondary" onclick="setRole('customer')">
+              Open Customer View
+            </button>
+            <button class="btn-secondary" onclick="setRole('wholesaler')">
+              Open Wholesaler View
+            </button>
+          </div>
+        </div>
+
+        <div
+          class="farmer-upload-panel"
+          id="farmerUploadPanel"
+          style="display: none"
+        >
+          <h3>Farmer Product Upload</h3>
+          <p>
+            Products uploaded by farmer will be visible to both customer and
+            wholesaler.
+          </p>
+          <form id="farmerProductForm" class="farmer-product-form">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="farmerProductName">Product Name</label>
+                <input type="text" id="farmerProductName" required />
+              </div>
+              <div class="form-group">
+                <label for="farmerProductCategory">Category</label>
+                <select id="farmerProductCategory" required>
+                  <option value="vegetables">Vegetables</option>
+                  <option value="fruits">Fruits</option>
+                  <option value="grains">Grains</option>
+                  <option value="dairy">Dairy</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="farmerProductPrice">Price per kg (INR)</label>
+                <input
+                  type="number"
+                  id="farmerProductPrice"
+                  min="1"
+                  step="1"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label for="farmerProductOriginalPrice"
+                  >Original Price (optional)</label
+                >
+                <input
+                  type="number"
+                  id="farmerProductOriginalPrice"
+                  min="1"
+                  step="1"
+                />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="farmerProductStock">Available Stock (kg)</label>
+                <input
+                  type="number"
+                  id="farmerProductStock"
+                  min="1"
+                  step="1"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label for="farmerProductIcon">Emoji Icon</label>
+                <input
+                  type="text"
+                  id="farmerProductIcon"
+                  value="🌾"
+                  maxlength="2"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="farmerProductShelfLife">Shelf Life</label>
+                <input
+                  type="text"
+                  id="farmerProductShelfLife"
+                  placeholder="e.g. 4-6 days"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="farmerProductLocation">Location</label>
+                <input
+                  type="text"
+                  id="farmerProductLocation"
+                  placeholder="e.g. Anand Farm"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label for="farmerProductDistance">Distance</label>
+                <input
+                  type="text"
+                  id="farmerProductDistance"
+                  placeholder="e.g. 2.0 km"
+                  required
+                />
+              </div>
+            </div>
+
+            <button type="submit" class="btn-primary">Upload Product</button>
+          </form>
+        </div>
+
+        <div class="filter-group">
+          <button class="filter-btn active" data-category="all">
+            All Products
+          </button>
+          <button class="filter-btn" data-category="vegetables">
+            Vegetables
+          </button>
+          <button class="filter-btn" data-category="fruits">Fruits</button>
+          <button class="filter-btn" data-category="grains">Grains</button>
+          <button class="filter-btn" data-category="dairy">Dairy</button>
+        </div>
+        <div class="sort-group">
+          <label>Sort by:</label>
+          <select id="sortSelect">
+            <option value="featured">Featured</option>
+            <option value="price-low">Price: Low to High</option>
+            <option value="price-high">Price: High to Low</option>
+            <option value="rating">Rating</option>
+            <option value="distance">Distance</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- Product Catalog -->
+    <section class="catalog">
+      <div class="container">
+        <div class="history-panel" id="recentHistoryPanel">
+          <h3 id="historyPanelTitle">Last 24-Hour Order History</h3>
+          <p id="historyPanelSubtitle">
+            Recent order activity based on your role.
+          </p>
+          <div class="history-list" id="historyList"></div>
+        </div>
+
+        <h2 class="section-title" id="catalogTitle">
+          Fresh Products from Local Farmers
+        </h2>
+        <div class="product-grid" id="productGrid">
+          <!-- Products will be dynamically loaded here -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="container">
+        <p>&copy; 2026 FarmFresh Marketplace. Supporting Local Farmers.</p>
+      </div>
+    </footer>
+
+    <script src="script.js"></script>
+  </body>
+</html>
