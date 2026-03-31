@@ -3,6 +3,7 @@
 A simple role-based farm marketplace built with Node.js, Express, MongoDB, and vanilla JavaScript.
 
 This project supports three roles:
+
 - Farmer: Upload products and manage listing inventory
 - Customer: Browse products and place orders
 - Wholesaler: Buy in bulk quantities
@@ -63,6 +64,7 @@ http://localhost:4000
    - orders
 
 If you do not see updates in Compass:
+
 - Ensure you are in database agridisruptor
 - Clear collection filter
 - Click Refresh
