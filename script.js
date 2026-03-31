@@ -316,7 +316,243 @@ let userLocation = localStorage.getItem('farmFreshLocation') || '';
 let currentRole = localStorage.getItem(ROLE_STORAGE_KEY) || '';
 let selectedCategory = 'all';
 let selectedSort = 'featured';
+let searchQuery = '';
 let orderHistory = [];
+
+// ===== UX UTILITY FUNCTIONS =====
+// Toast Notification System
+function showToast(message, type = 'info', duration = 3000) {
+    const toastContainer = document.getElementById('toastContainer') || createToastContainer();
+    
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.textContent = message;
+    toast.style.cssText = `
+        animation: slideIn 0.3s ease-out;
+        margin-bottom: 10px;
+        padding: 12px 16px;
+        border-radius: 6px;
+        background: ${type === 'success' ? '#4CAF50' : type === 'error' ? '#f44336' : '#2196F3'};
+        color: white;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        max-width: 400px;
+        word-wrap: break-word;
+        font-size: 14px;
+    `;
+    
+    toastContainer.appendChild(toast);
+    
+    const timeout = setTimeout(() => {
+        toast.style.animation = 'slideOut 0.3s ease-out';
+        setTimeout(() => toast.remove(), 300);
+    }, duration);
+    
+    toast.addEventListener('click', () => {
+        clearTimeout(timeout);
+        toast.style.animation = 'slideOut 0.3s ease-out';
+        setTimeout(() => toast.remove(), 300);
+    });
+}
+
+function createToastContainer() {
+    const container = document.createElement('div');
+    container.id = 'toastContainer';
+    container.style.cssText = `
+        position: fixed;
+        top: 80px;
+        right: 20px;
+        z-index: 9999;
+        pointer-events: none;
+    `;
+    document.body.appendChild(container);
+    
+    // Add CSS animations
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
+        .toast {
+            pointer-events: all;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .toast:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+    `;
+    document.head.appendChild(style);
+    
+    return container;
+}
+
+// Confirmation Dialog
+function showConfirmation(message, onConfirm, onCancel) {
+    const dialog = document.createElement('div');
+    dialog.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+        animation: fadeIn 0.2s ease;
+    `;
+    
+    const content = document.createElement('div');
+    content.style.cssText = `
+        background: white;
+        padding: 24px;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+        max-width: 400px;
+        animation: popIn 0.3s ease;
+    `;
+    
+    const title = document.createElement('h3');
+    title.textContent = 'Confirm Action';
+    title.style.marginBottom = '12px';
+    
+    const msg = document.createElement('p');
+    msg.textContent = message;
+    msg.style.cssText = 'margin-bottom: 24px; color: #666; line-height: 1.5;';
+    
+    const buttonContainer = document.createElement('div');
+    buttonContainer.style.cssText = 'display: flex; gap: 12px; justify-content: flex-end;';
+    
+    const cancelBtn = document.createElement('button');
+    cancelBtn.textContent = 'Cancel';
+    cancelBtn.style.cssText = `
+        padding: 10px 20px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        background: #f5f5f5;
+        cursor: pointer;
+        font-size: 14px;
+        transition: all 0.2s ease;
+    `;
+    cancelBtn.onmouseover = () => cancelBtn.style.background = '#e0e0e0';
+    cancelBtn.onmouseout = () => cancelBtn.style.background = '#f5f5f5';
+    
+    const confirmBtn = document.createElement('button');
+    confirmBtn.textContent = 'Confirm';
+    confirmBtn.style.cssText = `
+        padding: 10px 20px;
+        border: none;
+        border-radius: 6px;
+        background: #4CAF50;
+        color: white;
+        cursor: pointer;
+        font-size: 14px;
+        transition: all 0.2s ease;
+    `;
+    confirmBtn.onmouseover = () => confirmBtn.style.background = '#45a049';
+    confirmBtn.onmouseout = () => confirmBtn.style.background = '#4CAF50';
+    
+    cancelBtn.onclick = () => {
+        dialog.style.animation = 'fadeOut 0.2s ease';
+        setTimeout(() => {
+            dialog.remove();
+            if (onCancel) onCancel();
+        }, 200);
+    };
+    
+    confirmBtn.onclick = () => {
+        dialog.style.animation = 'fadeOut 0.2s ease';
+        setTimeout(() => {
+            dialog.remove();
+            if (onConfirm) onConfirm();
+        }, 200);
+    };
+    
+    buttonContainer.appendChild(cancelBtn);
+    buttonContainer.appendChild(confirmBtn);
+    content.appendChild(title);
+    content.appendChild(msg);
+    content.appendChild(buttonContainer);
+    dialog.appendChild(content);
+    document.body.appendChild(dialog);
+    
+    // Add animations
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes popIn {
+            from {
+                transform: scale(0.7);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+// Loading Spinner
+function setLoading(elementId, isLoading) {
+    const element = document.getElementById(elementId);
+    if (!element) return;
+    
+    if (isLoading) {
+        element.disabled = true;
+        element.style.opacity = '0.6';
+        element.style.pointerEvents = 'none';
+        element.innerHTML = `<span style="display: inline-block; animation: spin 1s linear infinite;">⏳</span> Loading...`;
+    } else {
+        element.disabled = false;
+        element.style.opacity = '1';
+        element.style.pointerEvents = 'auto';
+    }
+}
+
+// Validate Quantity
+function validateQuantity(quantity, maxQuantity, productName) {
+    if (quantity < 0) {
+        showToast(`❌ Quantity cannot be negative`, 'error');
+        return false;
+    }
+    if (quantity > maxQuantity) {
+        showToast(`❌ Only ${maxQuantity} kg available for ${productName}`, 'error');
+        return false;
+    }
+    if (quantity === 0) {
+        showToast(`❌ Please select a valid quantity`, 'error');
+        return false;
+    }
+    return true;
+}
 
 // Initialize Page
 document.addEventListener('DOMContentLoaded', async function() {
@@ -387,12 +623,17 @@ function initLoginPage() {
         event.preventDefault();
         const selectedRole = document.querySelector('input[name="role"]:checked');
         if (!selectedRole) {
-            alert('Please select a user category.');
+            showToast('❌ Please select a role to continue', 'error');
             return;
         }
 
-        setRole(selectedRole.value);
-        window.location.href = 'index.html';
+        const roleLabel = getRoleLabel(selectedRole.value);
+        showToast(`✅ Welcome, ${roleLabel}!`, 'success', 1500);
+        
+        setTimeout(() => {
+            setRole(selectedRole.value);
+            window.location.href = 'index.html';
+        }, 500);
     });
 }
 
@@ -410,8 +651,13 @@ function getRoleLabel(role) {
 }
 
 function logoutUser() {
-    localStorage.removeItem(ROLE_STORAGE_KEY);
-    window.location.href = 'login.html';
+    showConfirmation('Are you sure you want to logout?', () => {
+        localStorage.removeItem(ROLE_STORAGE_KEY);
+        showToast('✅ Logged out successfully', 'success', 1500);
+        setTimeout(() => {
+            window.location.href = 'login.html';
+        }, 500);
+    });
 }
 
 // Catalog Page Functions
@@ -421,9 +667,60 @@ function initCatalogPage() {
     initFarmerProductForm();
     initFilters();
     initSort();
+    initSearch();
     renderCatalogProducts();
     updateRoleChip();
     loadOrderHistory().then(() => renderRecentOrderHistory());
+}
+
+function initSearch() {
+    const searchBar = document.querySelector('.search-bar');
+    const searchBtn = document.querySelector('.search-btn');
+    
+    if (!searchBar || !searchBtn) return;
+    
+    function performSearch() {
+        const query = searchBar.value.trim().toLowerCase();
+        if (!query) {
+            showToast('🔍 Please enter a search term', 'info', 2000);
+            return;
+        }
+        
+        const results = getVisibleMarketplaceProducts().filter(p => 
+            p.name.toLowerCase().includes(query) || 
+            (p.description && p.description.toLowerCase().includes(query)) ||
+            (p.category && p.category.toLowerCase().includes(query))
+        );
+        
+        if (results.length === 0) {
+            showToast(`📭 No products found for "${query}"`, 'info', 3000);
+        } else {
+            showToast(`🎯 Found ${results.length} product${results.length !== 1 ? 's' : ''} matching "${query}"`, 'success', 2000);
+        }
+        
+        // Filter by search query
+        selectedCategory = 'all';
+        searchQuery = query;
+        renderCatalogProducts();
+        
+        // Smooth scroll to products
+        setTimeout(() => {
+            const productGrid = document.getElementById('productGrid');
+            if (productGrid) {
+                productGrid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }, 300);
+    }
+    
+    // Search button click
+    searchBtn.addEventListener('click', performSearch);
+    
+    // Enter key in search bar
+    searchBar.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            performSearch();
+        }
+    });
 }
 
 async function loadProducts() {
@@ -653,8 +950,14 @@ function initFarmerProductForm() {
         event.preventDefault();
 
         if (currentRole !== 'farmer') {
-            alert('Only farmer can upload products.');
+            showToast('❌ Only farmers can upload products', 'error');
             return;
+        }
+
+        const submitBtn = farmerProductForm.querySelector('button[type="submit"]');
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '⏳ Uploading...';
         }
 
         const newProduct = createFarmerProductFromForm();
@@ -669,9 +972,14 @@ function initFarmerProductForm() {
             farmerProductForm.reset();
             document.getElementById('farmerProductIcon').value = '🌾';
 
-            alert('Product uploaded to database. It is now visible to customer and wholesaler.');
+            showToast(`✅ ${newProduct.name} uploaded successfully!`, 'success', 3000);
         } catch (error) {
-            alert(error.message);
+            showToast(`❌ Upload failed: ${error.message}`, 'error');
+        } finally {
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '🚀 Upload Product';
+            }
         }
     });
 }
@@ -733,6 +1041,15 @@ function renderCatalogProducts() {
 
     if (selectedCategory !== 'all') {
         visibleProducts = visibleProducts.filter(product => product.category === selectedCategory);
+    }
+    
+    // Apply search filter
+    if (searchQuery) {
+        visibleProducts = visibleProducts.filter(product => 
+            product.name.toLowerCase().includes(searchQuery) || 
+            (product.description && product.description.toLowerCase().includes(searchQuery)) ||
+            (product.category && product.category.toLowerCase().includes(searchQuery))
+        );
     }
 
     switch (selectedSort) {
@@ -843,6 +1160,26 @@ function initFilters() {
 function filterProducts(category) {
     selectedCategory = category;
     renderCatalogProducts();
+    
+    // Add visual feedback
+    const filteredCount = getVisibleMarketplaceProducts().filter(p => {
+        if (selectedCategory && p.category !== selectedCategory) return false;
+        return true;
+    }).length;
+    
+    if (filteredCount === 0) {
+        showToast(`📭 No products found in ${category}`, 'info', 2000);
+    } else {
+        showToast(`🔍 Found ${filteredCount} product${filteredCount !== 1 ? 's' : ''} in ${category}`, 'success', 2000);
+    }
+    
+    // Smooth scroll to products
+    setTimeout(() => {
+        const productGrid = document.getElementById('productGrid');
+        if (productGrid) {
+            productGrid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }, 200);
 }
 
 function initSort() {
@@ -858,8 +1195,18 @@ function initSort() {
 }
 
 function sortProducts(sortBy) {
+    const sortLabels = {
+        'recommended': '⭐ Recommended',
+        'price-low': '💰 Price: Low to High',
+        'price-high': '💸 Price: High to Low',
+        'rating': '🌟 Top Rated',
+        'new': '🆕 Newest First'
+    };
+    
     selectedSort = sortBy;
     renderCatalogProducts();
+    
+    showToast(`Sorted by ${sortLabels[sortBy] || sortBy}`, 'success', 2000);
 }
 
 // Product Detail Page Functions
@@ -877,8 +1224,10 @@ function initProductDetailPage() {
 function displayProductDetail(productId) {
     const product = getVisibleMarketplaceProducts().find(p => String(p.id || p._id) === String(productId));
     if (!product) {
-        alert('This product is sold out or unavailable.');
-        window.location.href = 'index.html';
+        showToast('❌ This product is sold out or unavailable.', 'error', 3000);
+        setTimeout(() => {
+            window.location.href = 'index.html';
+        }, 1500);
         return;
     }
     
@@ -1034,7 +1383,11 @@ function displayReviews(productId) {
 function addToCart(productId, quantity = 1) {
     const product = findProductById(productId);
     if (!product || product.listedBy !== 'farmer' || product.stockKg <= 0) {
-        alert('This product is not available right now.');
+        showToast('❌ This product is not available right now', 'error');
+        return;
+    }
+    
+    if (!validateQuantity(quantity, product.stockKg, product.name)) {
         return;
     }
     
@@ -1043,7 +1396,7 @@ function addToCart(productId, quantity = 1) {
     const requestedTotal = existingQuantity + quantity;
 
     if (requestedTotal > product.stockKg) {
-        alert(`Only ${product.stockKg} kg is available for ${product.name}.`);
+        showToast(`❌ Only ${product.stockKg} kg available for ${product.name}`, 'error');
         return;
     }
     
@@ -1063,7 +1416,14 @@ function addToCart(productId, quantity = 1) {
     saveCart();
     updateCartCount();
     
-    alert(`${product.name} added to cart!`);
+    showToast(`✅ ${product.name} added to cart! (${quantity} kg)`, 'success');
+    
+    // Animate cart button
+    const cartBtn = document.querySelector('.cart-btn');
+    if (cartBtn) {
+        cartBtn.style.animation = 'pulse 0.6s ease';
+        setTimeout(() => cartBtn.style.animation = '', 600);
+    }
 }
 
 function buyNow(productId, quantity = 1) {
@@ -1164,20 +1524,21 @@ function updateQuantity(index, change) {
     const product = findProductById(cart[index].id);
 
     if (!product || product.listedBy !== 'farmer' || product.stockKg <= 0) {
-        alert('This product is no longer available.');
+        showToast(`❌ ${cart[index].name} is no longer available`, 'error');
         removeFromCart(index);
         return;
     }
     
     if (newQuantity < 0.25) {
-        if (confirm('Remove this item from cart?')) {
+        showConfirmation(`Remove ${cart[index].name} from cart?`, () => {
             removeFromCart(index);
-        }
+            showToast(`✅ Item removed from cart`, 'info');
+        });
         return;
     }
 
     if (newQuantity > product.stockKg) {
-        alert(`Maximum available quantity is ${product.stockKg} kg.`);
+        showToast(`❌ Maximum ${product.stockKg} kg available`, 'error');
         return;
     }
     
@@ -1185,14 +1546,17 @@ function updateQuantity(index, change) {
     saveCart();
     displayCartItems();
     updateCartSummary();
+    showToast(`✅ Quantity updated to ${cart[index].quantity} kg`, 'success', 2000);
 }
 
 function removeFromCart(index) {
+    const itemName = cart[index].name;
     cart.splice(index, 1);
     saveCart();
     updateCartCount();
     displayCartItems();
     updateCartSummary();
+    showToast(`🗑️ ${itemName} removed from cart`, 'info', 2000);
 }
 
 function updateCartSummary() {
@@ -1308,33 +1672,45 @@ async function handleCheckout(event) {
     event.preventDefault();
 
     if (cart.length === 0) {
-        alert('Your cart is empty.');
+        showToast('❌ Your cart is empty. Add items first!', 'error');
         return;
     }
     
     // Validate form
-    const fullName = document.getElementById('fullName').value;
-    const phone = document.getElementById('phone').value;
-    const address = document.getElementById('address').value;
-    const city = document.getElementById('city').value;
-    const pincode = document.getElementById('pincode').value;
+    const fullName = document.getElementById('fullName').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    const address = document.getElementById('address').value.trim();
+    const city = document.getElementById('city').value.trim();
+    const pincode = document.getElementById('pincode').value.trim();
     
     if (!fullName || !phone || !address || !city || !pincode) {
-        alert('Please fill in all required fields.');
+        showToast('❌ Please fill in all required fields', 'error');
+        return;
+    }
+    
+    // Validate phone number
+    if (!/^\d{10}$/.test(phone.replace(/\D/g, ''))) {
+        showToast('❌ Please enter a valid phone number', 'error');
+        return;
+    }
+    
+    // Validate pincode
+    if (!/^\d{6}$/.test(pincode)) {
+        showToast('❌ Please enter a valid 6-digit pincode', 'error');
         return;
     }
 
     for (const item of cart) {
         const product = findProductById(item.id);
         if (!product || product.listedBy !== 'farmer' || product.stockKg <= 0) {
-            alert(`${item.name} is no longer available. Please review cart.`);
+            showToast(`❌ ${item.name} is no longer available`, 'error');
             syncCartWithInventory();
             window.location.href = 'cart.html';
             return;
         }
 
         if (item.quantity > product.stockKg) {
-            alert(`${item.name} has only ${product.stockKg} kg left. Please update cart.`);
+            showToast(`❌ Only ${product.stockKg} kg of ${item.name} left`, 'error');
             syncCartWithInventory();
             window.location.href = 'cart.html';
             return;
@@ -1342,6 +1718,13 @@ async function handleCheckout(event) {
     }
 
     let orderId = '';
+    
+    // Show loading state
+    const submitBtn = document.querySelector('.btn-place-order');
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '⏳ Processing Order...';
+    }
 
     try {
         const response = await apiRequest('/orders', {
@@ -1357,7 +1740,11 @@ async function handleCheckout(event) {
         products = normalizeProducts(response.products || []);
         await loadOrderHistory();
     } catch (error) {
-        alert(error.message);
+        showToast(`❌ Order failed: ${error.message}`, 'error');
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = 'Place Order';
+        }
         return;
     }
     
@@ -1365,6 +1752,8 @@ async function handleCheckout(event) {
     const successModal = document.getElementById('successModal');
     document.getElementById('orderId').textContent = '#' + orderId;
     successModal.style.display = 'flex';
+    
+    showToast(`✅ Order placed successfully! Order ID: ${orderId}`, 'success', 4000);
     
     // Clear cart
     cart = [];
@@ -1380,11 +1769,13 @@ function initLocationButton() {
     const locationModal = document.getElementById('locationModal');
     const closeModal = document.getElementById('closeModal');
     const saveLocation = document.getElementById('saveLocation');
+    const locationInput = document.getElementById('locationInput');
     
     if (locationBtn) {
         locationBtn.onclick = () => {
             if (locationModal) {
                 locationModal.classList.add('active');
+                locationInput.focus();
             }
         };
     }
@@ -1397,15 +1788,34 @@ function initLocationButton() {
     
     if (saveLocation) {
         saveLocation.onclick = () => {
-            const location = document.getElementById('locationInput').value;
-            if (location) {
-                userLocation = location;
-                localStorage.setItem('farmFreshLocation', location);
-                displayCurrentLocation();
-                locationModal.classList.remove('active');
-                alert('Location saved successfully!');
+            const location = locationInput.value.trim();
+            if (!location) {
+                showToast('❌ Please enter a location', 'error');
+                locationInput.focus();
+                return;
             }
+            
+            if (location.length < 3) {
+                showToast('❌ Location must be at least 3 characters', 'error');
+                return;
+            }
+            
+            userLocation = location;
+            localStorage.setItem('farmFreshLocation', location);
+            displayCurrentLocation();
+            locationModal.classList.remove('active');
+            locationInput.value = '';
+            showToast(`✅ Location updated: ${location}`, 'success', 2000);
         };
+    }
+    
+    // Allow Enter key to save
+    if (locationInput) {
+        locationInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                saveLocation.click();
+            }
+        });
     }
     
     // Close modal on outside click
@@ -1413,6 +1823,7 @@ function initLocationButton() {
         locationModal.onclick = (e) => {
             if (e.target === locationModal) {
                 locationModal.classList.remove('active');
+                locationInput.value = '';
             }
         };
     }
@@ -1421,6 +1832,6 @@ function initLocationButton() {
 function displayCurrentLocation() {
     const currentLocation = document.getElementById('currentLocation');
     if (currentLocation && userLocation) {
-        currentLocation.textContent = `Current location: ${userLocation}`;
+        currentLocation.textContent = `📍 Current location: ${userLocation}`;
     }
 }

@@ -1897,3 +1897,24 @@ body {
         text-align: left;
     }
 }
+
+/* Search Enhancements */
+.search-bar.active {
+    border-color: var(--primary-color);
+    background: #f0f9f0;
+    box-shadow: 0 0 0 3px rgba(12, 131, 31, 0.15);
+}
+
+.search-bar::placeholder {
+    color: #999;
+    transition: color 0.2s;
+}
+
+.search-bar:focus::placeholder {
+    color: #ccc;
+}
+
+.search-btn:active {
+    transform: scale(0.98);
+    background: var(--primary-light);
+}

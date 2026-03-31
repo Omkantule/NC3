@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Checkout - FarmFresh Marketplace</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        transition: all 0.3s ease;
+      }
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .summary-item,
+      .form-section {
+        animation: fadeInUp 0.4s ease;
+      }
+      button:active {
+        transform: scale(0.98);
+      }
+      button:hover:not(:disabled) {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+      input,
+      textarea {
+        border: 2px solid #e0e0e0;
+        transition: border-color 0.3s ease;
+      }
+      input:focus,
+      textarea:focus {
+        border-color: #4caf50;
+        outline: none;
+      }
+      .payment-option {
+        cursor: pointer;
+        padding: 12px;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+      }
+      .payment-option:hover {
+        background: #f5f5f5;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Header Section -->
+    <header class="header">
+      <div class="container">
+        <div class="logo">
+          <h1>🌾 FarmFresh</h1>
+        </div>
+        <nav class="nav">
+          <input
+            type="text"
+            class="search-bar"
+            placeholder="Search for vegetables, fruits, grains..."
+          />
+          <button class="search-btn">🔍</button>
+        </nav>
+        <div class="header-actions">
+          <span class="role-chip" id="activeRoleChip">Role: Customer</span>
+          <button class="location-btn" id="locationBtn">📍 Set Location</button>
+          <button class="cart-btn" onclick="window.location.href = 'cart.html'">
+            🛒 Cart <span class="cart-count" id="cartCount">0</span>
+          </button>
+          <button class="logout-btn" onclick="logoutUser()">Logout</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Location Modal -->
+    <div class="modal" id="locationModal">
+      <div class="modal-content">
+        <span class="close-btn" id="closeModal">&times;</span>
+        <h2>Enter Your Location</h2>
+        <input
+          type="text"
+          id="locationInput"
+          placeholder="Enter your address or pincode"
+        />
+        <button class="btn-primary" id="saveLocation">Save Location</button>
+        <p class="current-location" id="currentLocation"></p>
+      </div>
+    </div>
+
+    <!-- Checkout Content -->
+    <section class="checkout-page">
+      <div class="container">
+        <h1>Checkout</h1>
+
+        <div class="checkout-content">
+          <!-- Checkout Form -->
+          <div class="checkout-form-section">
+            <form id="checkoutForm" class="checkout-form">
+              <!-- Delivery Address -->
+              <div class="form-section">
+                <h2>Delivery Address</h2>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="fullName">Full Name *</label>
+                    <input
+                      type="text"
+                      id="fullName"
+                      placeholder="Enter your full name"
+                      required
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="phone">Phone Number *</label>
+                    <input
+                      type="tel"
+                      id="phone"
+                      placeholder="Enter your phone number"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label for="address">Address *</label>
+                  <textarea
+                    id="address"
+                    placeholder="Enter complete address"
+                    rows="3"
+                    required
+                  ></textarea>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="city">City/Town *</label>
+                    <input
+                      type="text"
+                      id="city"
+                      placeholder="Enter city"
+                      required
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="pincode">Pincode *</label>
+                    <input
+                      type="text"
+                      id="pincode"
+                      placeholder="Enter pincode"
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Payment Method -->
+              <div class="form-section">
+                <h2>Payment Method</h2>
+                <div class="payment-options">
+                  <label class="payment-option">
+                    <input type="radio" name="payment" value="upi" checked />
+                    <span class="payment-name">💳 UPI</span>
+                  </label>
+                  <label class="payment-option">
+                    <input type="radio" name="payment" value="card" />
+                    <span class="payment-name">💰 Credit/Debit Card</span>
+                  </label>
+                  <label class="payment-option">
+                    <input type="radio" name="payment" value="cod" />
+                    <span class="payment-name">🚚 Cash on Delivery</span>
+                  </label>
+                </div>
+
+                <!-- UPI Details -->
+                <div
+                  id="upiDetails"
+                  class="payment-details"
+                  style="display: block"
+                >
+                  <div class="form-group">
+                    <label for="upiId">UPI ID *</label>
+                    <input type="text" id="upiId" placeholder="yourname@upi" />
+                  </div>
+                </div>
+
+                <!-- Card Details -->
+                <div
+                  id="cardDetails"
+                  class="payment-details"
+                  style="display: none"
+                >
+                  <div class="form-group">
+                    <label for="cardNumber">Card Number *</label>
+                    <input
+                      type="text"
+                      id="cardNumber"
+                      placeholder="1234 5678 9012 3456"
+                    />
+                  </div>
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label for="expiryDate">Expiry Date *</label>
+                      <input type="text" id="expiryDate" placeholder="MM/YY" />
+                    </div>
+                    <div class="form-group">
+                      <label for="cvv">CVV *</label>
+                      <input type="text" id="cvv" placeholder="123" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- T&C and Submit -->
+              <div class="form-section">
+                <label class="checkbox-label">
+                  <input type="checkbox" required />
+                  <span>I agree to the Terms and Conditions</span>
+                </label>
+                <button type="submit" class="btn-primary btn-place-order">
+                  Place Order
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Order Summary (Sidebar) -->
+          <div class="checkout-summary-section">
+            <div class="order-summary">
+              <h2>Order Summary</h2>
+
+              <div class="summary-items" id="summaryItems"></div>
+
+              <div class="summary-divider"></div>
+
+              <div class="summary-row">
+                <span>Subtotal</span>
+                <span id="checkoutSubtotal">₹0.00</span>
+              </div>
+
+              <div class="summary-row">
+                <span>Delivery Fee</span>
+                <span id="checkoutDelivery">₹50.00</span>
+              </div>
+
+              <div class="summary-row">
+                <span>Discount</span>
+                <span id="checkoutDiscount">-₹0.00</span>
+              </div>
+
+              <div class="summary-total">
+                <strong>Total Amount</strong>
+                <strong id="checkoutTotal">₹0.00</strong>
+              </div>
+
+              <button
+                type="button"
+                class="btn-secondary"
+                onclick="window.location.href = 'cart.html'"
+              >
+                Back to Cart
+              </button>
+            </div>
+
+            <!-- Secure Payment Info -->
+            <div class="secure-info">
+              <h3>🔒 Secure Payment</h3>
+              <p>
+                Your payment information is encrypted and secure. All
+                transactions are processed safely.
+              </p>
+            </div>
+
+            <!-- Order Info -->
+            <div class="order-info">
+              <h3>📦 Order Information</h3>
+              <p>
+                Your order will be delivered to the address provided above. You
+                will receive a confirmation via SMS and email.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Success Modal -->
+    <div class="modal" id="successModal" style="display: none">
+      <div class="modal-content success-content">
+        <div class="success-icon">✓</div>
+        <h2>Order Placed Successfully!</h2>
+        <p>Order ID: <strong id="orderId">#123456</strong></p>
+        <p style="font-size: 14px; color: #666">
+          You will receive a confirmation email shortly. Track your order from
+          your account.
+        </p>
+        <button
+          class="btn-primary"
+          onclick="window.location.href = 'index.html'"
+        >
+          Continue Shopping
+        </button>
+      </div>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>

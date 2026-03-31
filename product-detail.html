@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Product Details - FarmFresh Marketplace</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        transition: all 0.3s ease;
+      }
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .product-rating,
+      .price-section {
+        animation: fadeInUp 0.4s ease;
+      }
+      button:active {
+        transform: scale(0.98);
+      }
+      button:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+      .qty-btn.active {
+        transform: scale(1.05);
+      }
+      .farmer-card {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        padding: 16px;
+        border-radius: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Header Section -->
+    <header class="header">
+      <div class="container">
+        <div class="logo">
+          <h1>🌾 FarmFresh</h1>
+        </div>
+        <nav class="nav">
+          <input
+            type="text"
+            class="search-bar"
+            placeholder="Search for vegetables, fruits, grains..."
+          />
+          <button class="search-btn">🔍</button>
+        </nav>
+        <div class="header-actions">
+          <span class="role-chip" id="activeRoleChip">Role: Customer</span>
+          <button class="location-btn" id="locationBtn">📍 Set Location</button>
+          <button class="cart-btn" onclick="window.location.href = 'cart.html'">
+            🛒 Cart <span class="cart-count" id="cartCount">0</span>
+          </button>
+          <button class="logout-btn" onclick="logoutUser()">Logout</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Location Modal -->
+    <div class="modal" id="locationModal">
+      <div class="modal-content">
+        <span class="close-btn" id="closeModal">&times;</span>
+        <h2>Enter Your Location</h2>
+        <input
+          type="text"
+          id="locationInput"
+          placeholder="Enter your address or pincode"
+        />
+        <button class="btn-primary" id="saveLocation">Save Location</button>
+        <p class="current-location" id="currentLocation"></p>
+      </div>
+    </div>
+
+    <!-- Breadcrumb -->
+    <div class="breadcrumb">
+      <div class="container">
+        <a href="index.html">Home</a> > <span id="productName">Product</span>
+      </div>
+    </div>
+
+    <!-- Product Detail Page -->
+    <section class="product-detail-section">
+      <div class="container">
+        <div class="product-detail-content">
+          <!-- Product Images -->
+          <div class="product-images">
+            <div class="main-image" id="mainImage">
+              <span style="font-size: 150px">🌾</span>
+            </div>
+            <div class="thumbnails" id="thumbnails">
+              <div class="thumbnail active">
+                <span style="font-size: 40px">🌾</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Product Info -->
+          <div class="product-info">
+            <div class="product-header">
+              <h1 id="detailProductName">Product Name</h1>
+              <div class="product-rating">
+                <span class="stars" id="detailStars">★★★★☆</span>
+                <span class="rating-count" id="detailRating">(0)</span>
+              </div>
+            </div>
+
+            <div class="price-info">
+              <div class="price-main" id="detailPrice">₹0/kg</div>
+              <div class="discount-info">
+                <span class="original-price" id="detailOriginalPrice"></span>
+                <span class="discount-badge" id="detailDiscount"></span>
+              </div>
+            </div>
+
+            <!-- Product Details -->
+            <div class="product-details-box">
+              <div class="detail-row">
+                <span class="detail-label">Shelf Life:</span>
+                <span class="detail-value" id="detailShelfLife">-</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Location:</span>
+                <span class="detail-value" id="detailLocation">-</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Distance:</span>
+                <span class="detail-value" id="detailDistance">-</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Stock Available:</span>
+                <span class="stock-available detail-value">0 kg available</span>
+              </div>
+            </div>
+
+            <!-- Quantity Selection -->
+            <div class="quantity-section">
+              <h3>Select Quantity</h3>
+              <div class="qty-buttons">
+                <button class="qty-btn active" data-qty="0.25">250g</button>
+                <button class="qty-btn" data-qty="0.5">500g</button>
+                <button class="qty-btn" data-qty="1">1 kg</button>
+                <button class="qty-btn" data-qty="2">2 kg</button>
+                <button class="qty-btn" data-qty="5">5 kg</button>
+              </div>
+              <div class="custom-qty">
+                <label for="customQty">Or enter custom amount (kg):</label>
+                <input
+                  type="number"
+                  id="customQty"
+                  value="0.25"
+                  min="0.25"
+                  step="0.25"
+                />
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+              <button class="btn-add-cart" id="addToCartBtn">
+                🛒 Add to Cart
+              </button>
+              <button class="btn-buy-now" id="buyNowBtn">⚡ Buy Now</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Farmer Info -->
+        <div class="farmer-info-section">
+          <h2>Sold by</h2>
+          <div class="farmer-card">
+            <div class="farmer-header">
+              <span class="farmer-avatar" id="farmerAvatar">👨‍🌾</span>
+              <div class="farmer-name-rating">
+                <h3 id="farmerName">Farmer Name</h3>
+                <div class="farmer-rating">
+                  <span class="stars" id="farmerStars">★★★★★</span>
+                  <span id="farmerRating">4.8 rating</span>
+                </div>
+              </div>
+            </div>
+            <div class="farmer-stats">
+              <div class="stat">
+                <span class="stat-label">Experience</span>
+                <span class="stat-value" id="farmerExperience">10</span> years
+              </div>
+              <div class="stat">
+                <span class="stat-label">Products</span>
+                <span class="stat-value" id="farmerProducts">0</span>
+              </div>
+              <div class="stat">
+                <span class="stat-label">Orders</span>
+                <span class="stat-value" id="farmerOrders">0</span>
+              </div>
+            </div>
+            <p class="farmer-bio" id="farmerBio">
+              Verified farmer using sustainable farming methods.
+            </p>
+          </div>
+        </div>
+
+        <!-- Reviews Section -->
+        <div class="reviews-section">
+          <h2>Customer Reviews</h2>
+          <div id="reviewsList" class="reviews-list">
+            <p style="text-align: center; color: var(--text-light)">
+              Loading reviews...
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <script src="script.js"></script>
+  </body>
+</html>
