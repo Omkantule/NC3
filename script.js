@@ -310,6 +310,13 @@ const ROLE_STORAGE_KEY = 'farmFreshRole';
 const ORDER_HISTORY_KEY = 'farmFreshOrderHistory';
 const API_BASE_URL = '/api';
 
+const CHATBOT_SUGGESTIONS = [
+    'How do I place an order?',
+    'What payment methods are available?',
+    'How is delivery fee calculated?',
+    'How can I switch role?'
+];
+
 let products = [];
 let cart = JSON.parse(localStorage.getItem('farmFreshCart')) || [];
 let userLocation = localStorage.getItem('farmFreshLocation') || '';
@@ -557,6 +564,7 @@ function validateQuantity(quantity, maxQuantity, productName) {
 // Initialize Page
 document.addEventListener('DOMContentLoaded', async function() {
     const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+    initHardcodedChatbot();
     await loadProducts();
 
     if (currentPage === 'login.html') {
@@ -1834,4 +1842,125 @@ function displayCurrentLocation() {
     if (currentLocation && userLocation) {
         currentLocation.textContent = `📍 Current location: ${userLocation}`;
     }
+}
+
+// Hardcoded Chatbot
+function initHardcodedChatbot() {
+    if (document.getElementById('ffChatbotWrap')) return;
+
+    const wrapper = document.createElement('div');
+    wrapper.id = 'ffChatbotWrap';
+    wrapper.className = 'ff-chatbot-wrap';
+    wrapper.innerHTML = `
+        <button id="ffChatbotToggle" class="ff-chatbot-toggle" aria-label="Open chat assistant">💬 Help</button>
+        <section id="ffChatbotPanel" class="ff-chatbot-panel" aria-live="polite">
+            <header class="ff-chatbot-header">
+                <div>
+                    <h3>FarmFresh Assistant</h3>
+                    <p>Quick answers for your shopping flow</p>
+                </div>
+                <button id="ffChatbotClose" class="ff-chatbot-close" aria-label="Close chat">×</button>
+            </header>
+            <div id="ffChatbotMessages" class="ff-chatbot-messages"></div>
+            <div id="ffChatbotSuggestions" class="ff-chatbot-suggestions"></div>
+            <form id="ffChatbotForm" class="ff-chatbot-form">
+                <input id="ffChatbotInput" type="text" placeholder="Type your question..." maxlength="220" autocomplete="off" />
+                <button type="submit">Send</button>
+            </form>
+        </section>
+    `;
+
+    document.body.appendChild(wrapper);
+
+    const toggleBtn = document.getElementById('ffChatbotToggle');
+    const panel = document.getElementById('ffChatbotPanel');
+    const closeBtn = document.getElementById('ffChatbotClose');
+    const messages = document.getElementById('ffChatbotMessages');
+    const suggestions = document.getElementById('ffChatbotSuggestions');
+    const form = document.getElementById('ffChatbotForm');
+    const input = document.getElementById('ffChatbotInput');
+
+    if (!toggleBtn || !panel || !closeBtn || !messages || !suggestions || !form || !input) return;
+
+    appendChatMessage(messages, 'bot', 'Hi! I am your FarmFresh helper. Ask me about orders, roles, cart, and checkout.');
+
+    CHATBOT_SUGGESTIONS.forEach(question => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'ff-chatbot-suggestion';
+        button.textContent = question;
+        button.addEventListener('click', () => {
+            appendChatMessage(messages, 'user', question);
+            appendChatMessage(messages, 'bot', getHardcodedChatReply(question));
+            scrollChatToBottom(messages);
+        });
+        suggestions.appendChild(button);
+    });
+
+    const openChat = () => {
+        panel.classList.add('active');
+        toggleBtn.classList.add('hidden');
+        input.focus();
+        scrollChatToBottom(messages);
+    };
+
+    const closeChat = () => {
+        panel.classList.remove('active');
+        toggleBtn.classList.remove('hidden');
+    };
+
+    toggleBtn.addEventListener('click', openChat);
+    closeBtn.addEventListener('click', closeChat);
+
+    form.addEventListener('submit', event => {
+        event.preventDefault();
+        const question = input.value.trim();
+        if (!question) return;
+
+        appendChatMessage(messages, 'user', question);
+        appendChatMessage(messages, 'bot', getHardcodedChatReply(question));
+        input.value = '';
+        scrollChatToBottom(messages);
+    });
+}
+
+function appendChatMessage(container, sender, text) {
+    const message = document.createElement('div');
+    message.className = `ff-chatbot-message ${sender}`;
+    message.textContent = text;
+    container.appendChild(message);
+}
+
+function scrollChatToBottom(container) {
+    container.scrollTop = container.scrollHeight;
+}
+
+function getHardcodedChatReply(question) {
+    const q = question.toLowerCase();
+
+    if (q.includes('order') || q.includes('buy')) {
+        return 'To place an order: open a product, add quantity to cart, go to cart, then checkout and submit your address/payment details.';
+    }
+
+    if (q.includes('payment') || q.includes('upi') || q.includes('card') || q.includes('cod')) {
+        return 'Available payment methods are UPI, Credit/Debit Card, and Cash on Delivery on the checkout page.';
+    }
+
+    if (q.includes('delivery') || q.includes('fee') || q.includes('shipping')) {
+        return 'Delivery fee is ₹50, but it becomes FREE for orders above ₹500.';
+    }
+
+    if (q.includes('role') || q.includes('farmer') || q.includes('customer') || q.includes('wholesaler')) {
+        return 'You can switch role from the role selector on the home page. Farmers can upload products; customers and wholesalers can buy farmer products.';
+    }
+
+    if (q.includes('cart') || q.includes('remove') || q.includes('quantity')) {
+        return 'Use + and - buttons in cart to adjust quantity. You can remove items and proceed to checkout from the cart page.';
+    }
+
+    if (q.includes('login') || q.includes('logout')) {
+        return 'Login by selecting a role on the login page. Use the Logout button in the header to sign out.';
+    }
+
+    return 'I can help with orders, cart, checkout, delivery fee, payments, and role switching. Try one of the quick suggestion buttons.';
 }
