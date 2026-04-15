@@ -310,13 +310,6 @@ const ROLE_STORAGE_KEY = 'farmFreshRole';
 const ORDER_HISTORY_KEY = 'farmFreshOrderHistory';
 const API_BASE_URL = '/api';
 
-const CHATBOT_SUGGESTIONS = [
-    'How do I place an order?',
-    'What payment methods are available?',
-    'How is delivery fee calculated?',
-    'How can I switch role?'
-];
-
 let products = [];
 let cart = JSON.parse(localStorage.getItem('farmFreshCart')) || [];
 let userLocation = localStorage.getItem('farmFreshLocation') || '';
@@ -1852,20 +1845,19 @@ function initHardcodedChatbot() {
     wrapper.id = 'ffChatbotWrap';
     wrapper.className = 'ff-chatbot-wrap';
     wrapper.innerHTML = `
-        <button id="ffChatbotToggle" class="ff-chatbot-toggle" aria-label="Open chat assistant">💬 Help</button>
+        <button id="ffChatbotToggle" class="ff-chatbot-toggle" aria-label="Open chat assistant">🌾 Ask Farm Guide</button>
         <section id="ffChatbotPanel" class="ff-chatbot-panel" aria-live="polite">
             <header class="ff-chatbot-header">
                 <div>
-                    <h3>FarmFresh Assistant</h3>
-                    <p>Quick answers for your shopping flow</p>
+                    <h3>FarmFresh Farm Guide</h3>
+                    <p>Ask anything about shopping, farmer roles, or delivery</p>
                 </div>
                 <button id="ffChatbotClose" class="ff-chatbot-close" aria-label="Close chat">×</button>
             </header>
             <div id="ffChatbotMessages" class="ff-chatbot-messages"></div>
-            <div id="ffChatbotSuggestions" class="ff-chatbot-suggestions"></div>
             <form id="ffChatbotForm" class="ff-chatbot-form">
-                <input id="ffChatbotInput" type="text" placeholder="Type your question..." maxlength="220" autocomplete="off" />
-                <button type="submit">Send</button>
+                <input id="ffChatbotInput" type="text" placeholder="Ask your question..." maxlength="220" autocomplete="off" />
+                <button type="submit">Ask</button>
             </form>
         </section>
     `;
@@ -1876,26 +1868,12 @@ function initHardcodedChatbot() {
     const panel = document.getElementById('ffChatbotPanel');
     const closeBtn = document.getElementById('ffChatbotClose');
     const messages = document.getElementById('ffChatbotMessages');
-    const suggestions = document.getElementById('ffChatbotSuggestions');
     const form = document.getElementById('ffChatbotForm');
     const input = document.getElementById('ffChatbotInput');
 
-    if (!toggleBtn || !panel || !closeBtn || !messages || !suggestions || !form || !input) return;
+    if (!toggleBtn || !panel || !closeBtn || !messages || !form || !input) return;
 
-    appendChatMessage(messages, 'bot', 'Hi! I am your FarmFresh helper. Ask me about orders, roles, cart, and checkout.');
-
-    CHATBOT_SUGGESTIONS.forEach(question => {
-        const button = document.createElement('button');
-        button.type = 'button';
-        button.className = 'ff-chatbot-suggestion';
-        button.textContent = question;
-        button.addEventListener('click', () => {
-            appendChatMessage(messages, 'user', question);
-            appendChatMessage(messages, 'bot', getHardcodedChatReply(question));
-            scrollChatToBottom(messages);
-        });
-        suggestions.appendChild(button);
-    });
+    appendChatMessage(messages, 'bot', 'Hi! I am Farm Guide. Ask me anything about orders, cart, delivery, payments, or farmer roles.');
 
     const openChat = () => {
         panel.classList.add('active');
@@ -1938,29 +1916,137 @@ function scrollChatToBottom(container) {
 function getHardcodedChatReply(question) {
     const q = question.toLowerCase();
 
-    if (q.includes('order') || q.includes('buy')) {
-        return 'To place an order: open a product, add quantity to cart, go to cart, then checkout and submit your address/payment details.';
+    // Order & Purchase
+    if (q.includes('order') || q.includes('buy') || q.includes('purchase') || q.includes('how to buy')) {
+        return 'To place an order: 1) Browse products, 2) Select quantity, 3) Add to cart, 4) Go to cart page, 5) Click Checkout, 6) Enter delivery address and payment details, 7) Confirm order.';
     }
 
-    if (q.includes('payment') || q.includes('upi') || q.includes('card') || q.includes('cod')) {
-        return 'Available payment methods are UPI, Credit/Debit Card, and Cash on Delivery on the checkout page.';
+    if (q.includes('bulk order') || q.includes('wholesale') || q.includes('large quantity')) {
+        return 'Wholesalers can buy in bulk quantities directly from farmers. Switch to Wholesaler role to access bulk ordering features and negotiate prices.';
     }
 
-    if (q.includes('delivery') || q.includes('fee') || q.includes('shipping')) {
-        return 'Delivery fee is ₹50, but it becomes FREE for orders above ₹500.';
+    if (q.includes('order status') || q.includes('track order')) {
+        return 'You can track your orders in the Order History section. It shows order ID, status, farmer details, and delivery address.';
     }
 
-    if (q.includes('role') || q.includes('farmer') || q.includes('customer') || q.includes('wholesaler')) {
-        return 'You can switch role from the role selector on the home page. Farmers can upload products; customers and wholesalers can buy farmer products.';
+    if (q.includes('cancel order') || q.includes('modify order')) {
+        return 'Contact the farmer directly using the farmer profile or cancel before payment completion. Cancellations after payment may have refund policies.';
     }
 
-    if (q.includes('cart') || q.includes('remove') || q.includes('quantity')) {
-        return 'Use + and - buttons in cart to adjust quantity. You can remove items and proceed to checkout from the cart page.';
+    // Payment
+    if (q.includes('payment') || q.includes('upi') || q.includes('card') || q.includes('cod') || q.includes('pay')) {
+        return 'Payment methods: UPI (instant), Credit/Debit Card, and Cash on Delivery. Choose at checkout. All methods are secure.';
     }
 
-    if (q.includes('login') || q.includes('logout')) {
-        return 'Login by selecting a role on the login page. Use the Logout button in the header to sign out.';
+    if (q.includes('refund') || q.includes('return') || q.includes('money back')) {
+        return 'Refunds depend on product condition. Contact the farmer within 24 hours of delivery. Returns accepted for damaged or spoiled items with proof.';
     }
 
-    return 'I can help with orders, cart, checkout, delivery fee, payments, and role switching. Try one of the quick suggestion buttons.';
+    if (q.includes('payment fail') || q.includes('payment error')) {
+        return 'Payment failed? Check your internet connection, card details, or account balance. Try again or use a different payment method.';
+    }
+
+    if (q.includes('invoice') || q.includes('receipt') || q.includes('bill')) {
+        return 'Digital invoice is sent via email/order history after successful payment. Receipt contains order ID, items, price, and farmer details.';
+    }
+
+    // Delivery
+    if (q.includes('delivery') || q.includes('fee') || q.includes('shipping') || q.includes('soon') || q.includes('time')) {
+        return 'Delivery fee is ₹50, but FREE for orders above ₹500. Standard delivery: 2-3 days. Location-based variations apply.';
+    }
+
+    if (q.includes('delivery address') || q.includes('change address')) {
+        return 'Add delivery address at checkout. For location-based delivery calculation, enter complete address. Standard service area: 10 km radius.';
+    }
+
+    if (q.includes('delivery time') || q.includes('how long') || q.includes('estimated') || q.includes('when')) {
+        return 'Typical delivery: 2-3 working days depending on location and farmer availability. Peak seasons may cause delays.';
+    }
+
+    // Roles & Accounts
+    if (q.includes('role') || q.includes('farmer') || q.includes('customer') || q.includes('wholesaler') || q.includes('switch')) {
+        return 'Three roles available: 1) CUSTOMER - buy fresh produce, 2) FARMER - upload & sell products, 3) WHOLESALER - bulk buying. Switch anytime from home page.';
+    }
+
+    if (q.includes('create account') || q.includes('sign up') || q.includes('register')) {
+        return 'Select a role on login page and proceed. Account creation is instant - no email verification needed for this version.';
+    }
+
+    if (q.includes('farmer upload') || q.includes('farmer dashboard') || q.includes('add product')) {
+        return 'Farmers: After login, go to Farmer Dashboard. Click "Add New Product" to upload items with price, quantity, shelf life, images, and description.';
+    }
+
+    if (q.includes('farmer profile') || q.includes('farmer details') || q.includes('rating')) {
+        return 'All farmers have profiles showing: name, rating, experience, verified status, products listed, and total orders. Check ratings before buying.';
+    }
+
+    if (q.includes('verify farmer') || q.includes('trusted farmer') || q.includes('authentic')) {
+        return 'All farmers are verified in FarmFresh. Ratings and reviews help identify trusted sellers. Buy with confidence!';
+    }
+
+    if (q.includes('login') || q.includes('logout') || q.includes('sign out')) {
+        return 'Login: Select role on login page. Logout: Click "Logout" button in the header. Your cart is saved locally.';
+    }
+
+    if (q.includes('password') || q.includes('forgot') || q.includes('reset')) {
+        return 'This demo doesn\'t use passwords. Simply select your role and you\'re logged in instantly for testing purposes.';
+    }
+
+    // Products & Search
+    if (q.includes('search') || q.includes('find products') || q.includes('look for')) {
+        return 'Use the search bar to find products by name. Filter by category (Vegetables, Fruits, etc.) and sort by Featured, Price Low-High, or High-Low.';
+    }
+
+    if (q.includes('category') || q.includes('vegetables') || q.includes('fruits') || q.includes('filter')) {
+        return 'Product categories: Vegetables, Fruits, and more. Filter by category on home page to browse specific types easily.';
+    }
+
+    if (q.includes('price') || q.includes('discount') || q.includes('discount') || q.includes('cost')) {
+        return 'Prices vary by farmer and freshness. Many items have discounts (20-33% off). Original price shown crossed out. Sort by price for deals!';
+    }
+
+    if (q.includes('organic') || q.includes('fresh') || q.includes('quality') || q.includes('pesticide')) {
+        return 'All products are farm-fresh. Many farmers use organic/sustainable methods (noted in bio). Check farmer bio and reviews for quality assurance.';
+    }
+
+    if (q.includes('shelf life') || q.includes('expiry') || q.includes('how long') || q.includes('days')) {
+        return 'Shelf life varies: leafy veggies 3-4 days, roots 7-10 days, fruits 10-15 days. Check product details for specific shelf life.';
+    }
+
+    if (q.includes('stock') || q.includes('availability') || q.includes('out of stock')) {
+        return 'Available stock shown in kg. Check product stock before adding to cart. Limited stocks sell fast during peak demand.';
+    }
+
+    if (q.includes('reviews') || q.includes('rating') || q.includes('feedback')) {
+        return 'Product ratings show average customer satisfaction. Check number of reviews (higher = more feedback). Farmer ratings also visible.';
+    }
+
+    // Cart
+    if (q.includes('cart') || q.includes('remove') || q.includes('quantity') || q.includes('add to cart')) {
+        return 'In product details: use +/- buttons to set quantity, click "Add to Cart". In cart page: adjust quantities, remove items, or proceed to checkout.';
+    }
+
+    if (q.includes('cart save') || q.includes('cart persistent') || q.includes('cart remember')) {
+        return 'Your cart is saved locally on your device. It persists even after closing the browser.';
+    }
+
+    if (q.includes('apply coupon') || q.includes('promo code') || q.includes('discount code')) {
+        return 'Coupon feature not available in this version. But many products already have discounts applied!';
+    }
+
+    // Technical
+    if (q.includes('bug') || q.includes('error') || q.includes('issue') || q.includes('not working')) {
+        return 'Having trouble? Try refreshing the page, clearing browser cache, or using a different browser. Contact support if issues persist.';
+    }
+
+    if (q.includes('mobile') || q.includes('app') || q.includes('responsive')) {
+        return 'FarmFresh works on desktop and mobile browsers. For best experience, use latest Chrome, Firefox, or Safari.';
+    }
+
+    if (q.includes('data') || q.includes('privacy') || q.includes('secure')) {
+        return 'Your cart and data are stored locally in your browser. No data is sent to external servers in this demo version.';
+    }
+
+    // Default
+    return 'I can help with: placing orders, payments, delivery, roles, products search, cart management, farmer profiles, and account features. What would you like to know?';
 }
